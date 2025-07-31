@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trailing Stop Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .calculator {
+            display: grid;
+            gap: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .result {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .highlight {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .example {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .example h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .example p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trailing Stop Calculator</h1>
+            <p>Calculate optimal callback rates for your trading strategy</p>
+        </div>
+        
+        <div class="content">
+            <div class="calculator">
+                <div class="input-group">
+                    <div class="input-row">
+                        <div>
+                            <label for="currentPrice">Current Asset Price</label>
+                            <input type="number" id="currentPrice" placeholder="e.g., 120000" step="any">
+                        </div>
+                        <div>
+                            <label for="activationPrice">Activation Price</label>
+                            <input type="number" id="activationPrice" placeholder="e.g., 110000" step="any">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-row">
+                        <div>
+                            <label for="wiggleAmount">Max Wiggle Amount</label>
+                            <input type="number" id="wiggleAmount" placeholder="e.g., 5000 or 1" step="any">
+                        </div>
+                        <div>
+                            <label for="tradeType">Trade Type</label>
+                            <select id="tradeType">
+                                <option value="buy">Buy (Price Going Down)</option>
+                                <option value="sell">Sell (Price Going Up)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateTrailingStop()">Calculate Callback Rate</button>
+            </div>
+
+            <div class="result" id="result">
+                <h3>📊 Calculation Results</h3>
+                <div class="result-item">
+                    <span class="result-label">Callback Rate:</span>
+                    <span class="result-value highlight" id="callbackRate">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Trigger Price:</span>
+                    <span class="result-value" id="triggerPrice">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Stop Price Range:</span>
+                    <span class="result-value" id="stopRange">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Max Loss/Gain from Activation:</span>
+                    <span class="result-value" id="maxLossGain">--</span>
+                </div>
+            </div>
+
+            <div class="example">
+                <h4>💡 How it works:</h4>
+                <p><strong>For Buy Orders (Price Going Down):</strong> Set activation price below current price. The trailing stop will trigger when price bounces back up by your callback rate from the lowest point after activation.</p>
+                <p><strong>For Sell Orders (Price Going Up):</strong> Set activation price above current price. The trailing stop will trigger when price drops back down by your callback rate from the highest point after activation.</p>
+                <p><strong>Example:</strong> Current price $120K, activation at $110K, max wiggle $5K → Callback rate ≈ 4.55%. This means if price drops to $100K (lowest), it will trigger buy at $104.55K (100K + 4.55%).</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateTrailingStop() {
+            // Get input values
+            const currentPrice = parseFloat(document.getElementById('currentPrice').value);
+            const activationPrice = parseFloat(document.getElementById('activationPrice').value);
+            const wiggleAmount = parseFloat(document.getElementById('wiggleAmount').value);
+            const tradeType = document.getElementById('tradeType').value;
+
+            // Validate inputs
+            if (isNaN(currentPrice) || isNaN(activationPrice) || isNaN(wiggleAmount)) {
+                alert('Please fill in all fields with valid numbers.');
+                return;
+            }
+
+            if (wiggleAmount <= 0) {
+                alert('Wiggle amount must be greater than 0.');
+                return;
+            }
+
+            // Validate logical constraints
+            if (tradeType === 'buy' && activationPrice >= currentPrice) {
+                alert('For buy orders, activation price should be lower than current price.');
+                return;
+            }
+
+            if (tradeType === 'sell' && activationPrice <= currentPrice) {
+                alert('For sell orders, activation price should be higher than current price.');
+                return;
+            }
+
+            // Calculate callback rate
+            const callbackRate = (wiggleAmount / activationPrice) * 100;
+
+            // Calculate trigger scenarios
+            let triggerPrice, stopRangeMin, stopRangeMax, maxLossGain;
+
+            if (tradeType === 'buy') {
+                // For buy: expecting price to go down to activation, then bounce back up
+                // Worst case: price goes down by wiggleAmount from activation
+                const lowestExpectedPrice = activationPrice - wiggleAmount;
+                triggerPrice = lowestExpectedPrice * (1 + callbackRate / 100);
+                stopRangeMin = activationPrice - wiggleAmount;
+                stopRangeMax = activationPrice;
+                maxLossGain = `Max buy price: ${triggerPrice.toFixed(2)} (from worst case scenario)`;
+            } else {
+                // For sell: expecting price to go up to activation, then drop back down
+                // Best case: price goes up by wiggleAmount from activation
+                const highestExpectedPrice = activationPrice + wiggleAmount;
+                triggerPrice = highestExpectedPrice * (1 - callbackRate / 100);
+                stopRangeMin = activationPrice;
+                stopRangeMax = activationPrice + wiggleAmount;
+                maxLossGain = `Min sell price: ${triggerPrice.toFixed(2)} (from best case scenario)`;
+            }
+
+            // Display results
+            document.getElementById('callbackRate').textContent = `${callbackRate.toFixed(4)}%`;
+            document.getElementById('triggerPrice').textContent = `$${triggerPrice.toFixed(2)}`;
+            document.getElementById('stopRange').textContent = `$${stopRangeMin.toFixed(2)} - $${stopRangeMax.toFixed(2)}`;
+            document.getElementById('maxLossGain').textContent = maxLossGain;
+
+            // Show result section
+            document.getElementById('result').classList.add('show');
+        }
+
+        // Allow Enter key to calculate
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateTrailingStop();
+            }
+        });
+
+        // Auto-calculate when inputs change (optional)
+        const inputs = ['currentPrice', 'activationPrice', 'wiggleAmount', 'tradeType'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                // Optional: auto-calculate on input change
+                // calculateTrailingStop();
+            });
+        });
+    </script>
+</body>
+</html>
